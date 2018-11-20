@@ -1,9 +1,11 @@
+#!/usr/bin/python3
+# -*- coding: utf-8 -*-
 #wuziqi.py
 #Author:fengqi
 
 from graphics import *
 import time
-
+###
 num = [[0 for a in range(16)] for a in range(16)]
 dx = [1,1,0,-1,-1,-1,0,1]
 dy = [0,1,1,1,0,-1,-1,-1]
@@ -13,23 +15,32 @@ ai = 1
 L1_max=-100000
 L2_min=100000
 list=[]
-win = GraphWin("wuziqi",550,451)
-t=Text(Point(500,250),"")
-t.draw(win)
-notice = Text(Point(500,300),"") #提示轮到谁落子
-notice.setFill('red')
-notice.draw(win)
-last_ai = Text(Point(500,330),"") #AI最后落子点
-last_ai.draw(win)
-last_man = Text(Point(500,370),"") #玩家最后落子点
-last_man.draw(win)
-QUIT = Text(Point(500,100),"click to quit")
-QUIT.setFill('red')
-QUIT.draw(win)
-RESTART = Text(Point(500,150),"click to restart")
-RESTART.setFill('red')
-RESTART.draw(win)
 RESTART_FLAG = False
+###
+win = GraphWin("五子棋",550,451)
+aiFirst = Text(Point(500,100),"AI 先手")
+manFirst = Text(Point(500,140),"我先手")
+notice = Text(Point(500,290),"") #提示轮到谁落子
+notice.setFill('red')
+last_ai = Text(Point(500,330),"") #AI最后落子点
+last_man = Text(Point(500,370),"") #玩家最后落子点
+QUIT = Text(Point(500,20),"退出")
+QUIT.setFill('red')
+RESTART = Text(Point(500,60),"重玩")
+RESTART.setFill('red')
+Rectangle(Point(460,5),Point(540,35)).draw(win)
+Rectangle(Point(460,45),Point(540,75)).draw(win)
+Rectangle(Point(460,85),Point(540,115)).draw(win)
+Rectangle(Point(460,125),Point(540,155)).draw(win)
+Rectangle(Point(452,275),Point(548,305)).draw(win)
+Rectangle(Point(452,307),Point(548,395)).draw(win)
+aiFirst.draw(win)
+manFirst.draw(win)
+notice.draw(win)
+last_ai.draw(win)
+last_man.draw(win)
+QUIT.draw(win)
+RESTART.draw(win)
 #数据初始化，把棋盘上的棋子和提示清空
 def init():
     global is_end
@@ -48,7 +59,6 @@ def init():
     notice.setText("")
     last_ai.setText("")
     last_man.setText("")
-    t.setText("")
 #画棋盘
 def drawWin():
     win.setBackground('yellow')
@@ -317,31 +327,31 @@ def go(x,y):
     list.append(c)
     if(ban(x,y)):
         if(start==ai):
-            t.setText("AI ban,man win!\nclick to restart")
+            notice.setText("AI 禁手,玩家赢!\n点击重玩")
         else:
-            t.setText("man ban,AI win!\nclick to restart")
+            notice.setText("玩家禁手,AI 赢!\n点击重玩")
         is_end=True
     elif(gameOver(x,y)):
         if(start==ai):
-            t.setText("AI win!\nclick to restart")
+            notice.setText("AI 赢!\n点击重玩")
         else:
-            t.setText("man win!\nclick to restart")
+            notice.setText("玩家赢!\n点击重玩")
 
 def re_start(p):
     global RESTART_FLAG
     global is_end
     x=p.getX()
     y=p.getY()
-    if((abs(500-x)<50) and (abs(150-y)<25)): #restart
+    if((abs(500-x)<40) and (abs(60-y)<15)): #restart
         init()
         RESTART_FLAG=True
-        notice.setText("restart")
+        notice.setText("重新开始")
         return True
-    elif((abs(500-x)<50) and (abs(100-y)<25)): #quit
+    elif((abs(500-x)<40) and (abs(20-y)<15)): #quit
         init()
         RESTART_FLAG=True
         is_end=True
-        notice.setText("quit")
+        notice.setText("退出")
         return True
     else:
         return False
@@ -349,7 +359,7 @@ def re_start(p):
 def checkMouse(p):
     x=p.getX()
     y=p.getY()
-    if(((abs(500-x)<50) and (abs(150-y)<25))or((abs(500-x)<50) and (abs(100-y)<25))): #restart
+    if(((abs(500-x)<40) and (abs(60-y)<15))or((abs(500-x)<40) and (abs(20-y)<15))): #restart
         return True
     else:
         return False
@@ -360,20 +370,18 @@ if __name__=='__main__':
     while(not is_end):
         RESTART_FLAG=False
         if(start==ai):
-            notice.setText("AI turn...")
+            notice.setText("AI 正在下棋...")
             AI1()
         else:
-            notice.setText("YOU turn...")
+            notice.setText("请你下棋...")
             playMan()
         start=3-start
-        if(RESTART_FLAG and not is_end):
+        if(RESTART_FLAG):
             start=3-start
-            time.sleep(3)
-        elif(RESTART_FLAG and is_end):
-            time.sleep(3)
+            time.sleep(2)
         elif(not RESTART_FLAG and is_end):
             p=win.getMouse()
             while(not checkMouse(p)):
                 p=win.getMouse()
             re_start(p)
-            time.sleep(3)
+            time.sleep(2)
