@@ -10,12 +10,14 @@ num = [[0 for a in range(16)] for a in range(16)]
 dx = [1,1,0,-1,-1,-1,0,1]
 dy = [0,1,1,1,0,-1,-1,-1]
 is_end = False
+go_first = 1
 start = 1
 ai = 1
 L1_max=-100000
 L2_min=100000
 list=[]
 RESTART_FLAG = False
+QUIT_FLAG = False
 ###
 win = GraphWin("五子棋",550,451)
 aiFirst = Text(Point(500,100),"AI 先手")
@@ -45,10 +47,13 @@ RESTART.draw(win)
 def init():
     global is_end
     global start
+    global go
     global RESTART_FLAG
     is_end=False
     RESTART_FLAG=False
+    QUIT_FLAG=False
     start=1
+    go_first=1
     for i in range(16):
         for j in range(16):
             if(num[i][j]!=0):
@@ -190,7 +195,7 @@ def overLine(x,y):
     return flag
 #该黑子点是否是禁手点，黑子禁手直接判输
 def ban(x,y):
-    if(sameColor(x,y,2)):
+    if(sameColor(x,y,3-go_first)):
         return False
     flag=((liveThree(x,y)>1) or (overLine(x,y)) or ((liveFour(x,y)+chongFour(x,y))>1))
     return flag
@@ -302,7 +307,7 @@ def AI3(p2):
 #选手下棋
 def playMan():
     p=win.getMouse()
-    if(re_start(p)):
+    if(Restart(p) or Quit(p)):
         return 0
     x=round(p.getX()/30)
     y=round(p.getY()/30)
@@ -317,12 +322,18 @@ def go(x,y):
     if(start==ai):
         num[x][y]=ai
         last_ai.setText("AI 落子:\n x:"+str(x)+" - y:"+str(y))
-        c.setFill('black')
+        if(go_first==ai):
+            c.setFill('black')
+        else:
+            c.setFill('white')
         c.draw(win)
     else:
         num[x][y]=3-ai
         last_man.setText("玩家落子:\n x:"+str(x)+" - y:"+str(y))
-        c.setFill('white')
+        if(go_first==ai):
+            c.setFill('white')
+        else:
+            c.setFill('black')
         c.draw(win)
     list.append(c)
     if(ban(x,y)):
@@ -337,36 +348,58 @@ def go(x,y):
         else:
             notice.setText("玩家赢!\n点击重玩")
 
-def re_start(p):
+def Restart(p):
     global RESTART_FLAG
-    global is_end
     x=p.getX()
     y=p.getY()
     if((abs(500-x)<40) and (abs(60-y)<15)): #restart
         init()
         RESTART_FLAG=True
         notice.setText("重新开始")
+        time.sleep(1)
         return True
-    elif((abs(500-x)<40) and (abs(20-y)<15)): #quit
+    else:
+        return False
+##
+def Quit(p):
+    global QUIT_FLAG
+    global is_end
+    x=p.getX()
+    y=p.getY()
+    if((abs(500-x)<40) and (abs(20-y)<15)): #quit
         init()
-        RESTART_FLAG=True
+        QUIT_FLAG=True
         is_end=True
         notice.setText("退出")
+        time.sleep(1)
+        return True
+    else:
+        return False
+##
+def whoStart(p):
+    global start
+    global go_first
+    x=p.getX()
+    y=p.getY()
+    if((abs(500-x)<40) and (abs(100-y)<15)): #AI 先手
+        start=1
+        go_first=1
+        return True
+    elif((abs(500-x)<40) and (abs(140-y)<15)): #玩家先手
+        start=2
+        go_first=2
         return True
     else:
         return False
 
-def checkMouse(p):
-    x=p.getX()
-    y=p.getY()
-    if(((abs(500-x)<40) and (abs(60-y)<15))or((abs(500-x)<40) and (abs(20-y)<15))): #restart
-        return True
-    else:
-        return False
 #主程序入口
 if __name__=='__main__':
     init()
     drawWin()
+    notice.setText("请选择先手")
+    p=win.getMouse()
+    while(not whoStart(p) and not Quit(p)):
+        p=win.getMouse()
     while(not is_end):
         RESTART_FLAG=False
         if(start==ai):
@@ -377,11 +410,16 @@ if __name__=='__main__':
             playMan()
         start=3-start
         if(RESTART_FLAG):
-            start=3-start
-            time.sleep(2)
-        elif(not RESTART_FLAG and is_end):
+            notice.setText("请选择先手")
             p=win.getMouse()
-            while(not checkMouse(p)):
+            while(not whoStart(p) and not Quit(p)):
                 p=win.getMouse()
-            re_start(p)
-            time.sleep(2)
+        elif(not QUIT_FLAG and is_end):
+            p=win.getMouse()
+            while(not Restart(p) and not Quit(p)):
+                p=win.getMouse()
+            if(RESTART_FLAG):
+                notice.setText("请选择先手")
+                p=win.getMouse()
+                while(not whoStart(p) and not Quit(p)):
+                    p=win.getMouse()
